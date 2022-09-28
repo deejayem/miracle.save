@@ -185,9 +185,26 @@
     (doseq [f ns-fns]
       (unsave-var* f))))
 
+(defn ldf
+  "Loads the local bindings that have been saved using `save-var*` with `v` as parameter, and calling `v`."
+  ([v] (ldf v 0))
+  ([v pos]
+   (let [locals (:args (nth (get @f-saves (resolve v)) pos))]
+     (when locals
+       (println "Defining:")
+       (inspect-map locals))
+     (doseq [[sym val] locals]
+       (try
+         (eval `(def ~(symbol sym) '~val))
+         (catch Exception e (prn sym val) (throw e)))))))
 
-
-
+(defn print-f-saves
+  [v]
+  (let [locals (take 10 (get @f-saves (resolve v)))]
+    (doseq [i (reverse (range (count locals)))]
+      (println "Entry no." i)
+      (inspect-map (first (drop i locals)))
+      (prn))))
 
 (comment
   ;; Example usage of basic `save`
